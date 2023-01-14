@@ -9,10 +9,46 @@ services:
       - ./nginx/log:/var/log/nginx
     ports:
       - 80:80
+    depends_on:
+      - wordpress
     networks:
       frontend:
         ipv4_address: 172.16.0.10
     restart: always
+    
+  wordpress: 
+    image: wordpress:php8.2-fpm
+    container_name: wordpress
+    depends_on:
+      - db
+    networks:
+      frontend:
+        ipv4_address: 172.16.0.20
+      backend-wp:
+        ipv4_address: 172.16.1.20
+    volumes:
+      - ./html:/var/www/html
+    restart: always
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: ${MYSQL_USER}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
+  
+  db:
+    image: mariadb:latest
+    container_name: mariadb-wp
+    networks:
+      backend-wp:
+        ipv4_address: 172.16.1.21
+    volumes:
+      - ./db_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE} 
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD} 
+      TZ: Asia/Tokyo
 
 networks:
   frontend:
