@@ -16,7 +16,18 @@ services:
       frontend:
         ipv4_address: 172.16.0.10
     restart: always
-    
+  
+  certbot:
+    image: certbot/certbot:latest
+    container_name: certbot
+    volumes:
+      - ./letsencrypt:/etc/letsencrypt
+      - ./html:/var/www/html
+    networks:
+      frontend:
+        ipv4_address: 172.16.0.30
+    restart: always
+  
   wordpress: 
     image: wordpress:php8.2-fpm
     container_name: wordpress
