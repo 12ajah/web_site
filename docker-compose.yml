@@ -8,15 +8,30 @@ services:
       - ./nginx/conf.d/:/etc/nginx/conf.d/
       - ./nginx/log:/var/log/nginx
       - ./html:/var/www/html
+      - ./letsencrypt:/etc/letsencrypt
     ports:
       - 80:80
+      - 443:443
     depends_on:
       - wordpress
+    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
     networks:
       frontend:
         ipv4_address: 172.16.0.10
     restart: always
-    
+  
+  certbot:
+    image: certbot/certbot:latest
+    container_name: certbot
+    volumes:
+      - ./letsencrypt:/etc/letsencrypt
+      - ./html:/var/www/html
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      frontend:
+        ipv4_address: 172.16.0.30
+    restart: always
+  
   wordpress: 
     image: wordpress:php8.2-fpm
     container_name: wordpress
